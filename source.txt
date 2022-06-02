@@ -1,0 +1,185 @@
+// const express = require('express')
+// const hummus = require('hummus');
+
+// const fs = require('fs')
+// const util = require('util')
+
+// const app = express()
+// const port = 3000
+
+// // app.get('/', function (req, res) {
+// //     res.send('Hello World')
+// // })
+
+// // console.log(`Starting server in PORT: ${port}`)
+
+// // app.listen(port)
+
+// function strToByteArray(str) {
+//     var myBuffer = [];
+//     var buffer = Buffer.from(str);
+//     for (var i = 0; i < buffer.length; i++) {
+//         myBuffer.push(buffer[i]);
+//     }
+//     return myBuffer;
+// }
+
+// function replaceText(sourceFile, targetFile, pageNumber, findText, replaceText) {
+//     var writer = hummus.createWriterToModify(sourceFile, {
+//         modifiedFilePath: targetFile
+//     });
+//     var sourceParser = writer.createPDFCopyingContextForModifiedFile().getSourceDocumentParser();
+//     var pageObject = sourceParser.parsePage(pageNumber);
+//     var textObjectId = pageObject.getDictionary().toJSObject().Contents.getObjectID();
+//     var textStream = sourceParser.queryDictionaryObject(pageObject.getDictionary(), 'Contents');
+
+//     //read the original block of text data
+//     var data = [];
+//     var readStream = sourceParser.startReadingFromStream(textStream);
+//     while (readStream.notEnded()) {
+//         Array.prototype.push.apply(data, readStream.read(10000));
+//     }
+
+//     var string = Buffer.from(data).toString().replace(findText, replaceText);
+
+//     //Create and write our new text object
+//     var objectsContext = writer.getObjectsContext();
+//     objectsContext.startModifiedIndirectObject(textObjectId);
+
+//     var stream = objectsContext.startUnfilteredPDFStream();
+//     stream.getWriteStream().write(strToByteArray(string));
+//     objectsContext.endPDFStream(stream);
+
+//     objectsContext.endIndirectObject();
+
+//     writer.end();
+// }
+
+// replaceText('template.pdf', 'output.pdf', 0, /NOMECLIENTE/g, 'Bruno');
+
+
+// // function redactPDF ({filePath, patterns}) {
+// // 	const modPdfWriter = hummus.createWriterToModify(filePath, {modifiedFilePath: `${filePath}-modified`, compress: false})
+// // 	const numPages = modPdfWriter.createPDFCopyingContextForModifiedFile().getSourceDocumentParser().getPagesCount()
+
+// // 	for (let page = 0; page < numPages; page++) {
+// // 		const copyingContext = modPdfWriter.createPDFCopyingContextForModifiedFile()
+// // 		const objectsContext = modPdfWriter.getObjectsContext()
+
+// // 		const pageObject = copyingContext.getSourceDocumentParser().parsePage(page)
+// // 		const textStream = copyingContext.getSourceDocumentParser().queryDictionaryObject(pageObject.getDictionary(), 'Contents')
+// // 		const textObjectID = pageObject.getDictionary().toJSObject().Contents.getObjectID()
+
+// // 		let data = []
+// // 		const readStream = copyingContext.getSourceDocumentParser().startReadingFromStream(textStream)
+// // 		while (readStream.notEnded()) {
+// // 			const readData = readStream.read(10000)
+// // 			data = data.concat(readData)
+// // 		}
+
+// // 		const pdfPageAsString = Buffer.from(data).toString()
+
+// // 		let toRedactString = findInText({patterns, string: pdfPageAsString})
+
+// // 		const redactedPdfPageAsString = pdfPageAsString.replace(new RegExp(toRedactString, 'g'), new Array(toRedactString.length).join('-'))
+
+// // 		// Create what will become our new text object
+// // 		objectsContext.startModifiedIndirectObject(textObjectID)
+
+// // 		const stream = objectsContext.startUnfilteredPDFStream()
+// // 		stream.getWriteStream().write(strToByteArray(redactedPdfPageAsString))
+// // 		objectsContext.endPDFStream(stream)
+
+// // 		objectsContext.endIndirectObject()
+// // 	}
+
+// // 	modPdfWriter.end()
+
+// // 	hummus.recrypt(`${filePath}-modified`, filePath)
+// // }
+
+// // function findInText ({patterns, string}) {
+// // 	for (let pattern of patterns) {
+// // 		const match = new RegExp(pattern, 'g').exec(string)
+// // 		if (match) {
+// // 			if (match[1]) {
+// // 				return match[1]
+// // 			}
+// // 			else {
+// // 				return match[0]
+// // 			}
+// // 		}
+// // 	}
+
+// // 	return false
+// // }
+
+// // function strToByteArray (str) {
+// // 	let myBuffer = []
+// // 	let buffer = Buffer.from(str)
+// // 	for (let i = 0; i < buffer.length; i++) {
+// // 		myBuffer.push(buffer[i])
+// // 	}
+// // 	return myBuffer
+// // }
+
+
+
+// var hummus = require('hummus');
+
+//write our example pdf
+// var pdfWriter = hummus.createWriter('./template.pdf', {compress:false});
+// var arialFont = pdfWriter.getFontForFile('./Arial.ttf');
+// var page = pdfWriter.createPage(0,0,600,800);
+// var cxt = pdfWriter.startPageContentContext(page);
+
+// var textOptions = {font:arialFont, size:14, color:0x222222};
+// cxt.writeText('Example text',75,75,textOptions)
+// pdfWriter.writePage(page)
+// pdfWriter.end();
+
+
+//init modification writer
+// var modPdfWriter = hummus.createWriterToModify('./template.pdf', {modifiedFilePath:'./output.pdf', compress:false});
+
+// //get references to the contents stream on the relevant page (first, in this instance)
+// var sourceParser = modPdfWriter.createPDFCopyingContextForModifiedFile().getSourceDocumentParser();
+// var pageObject = sourceParser.parsePage(0);
+// var textObjectID = pageObject.getDictionary().toJSObject().Contents.getObjectID();
+// var textStream = sourceParser.queryDictionaryObject(pageObject.getDictionary(), 'Contents');
+
+// //read the original block of text data
+// var data = [];
+// var readStream = sourceParser.startReadingFromStream(textStream);
+// while(readStream.notEnded()){
+//   var readData = readStream.read(10000);
+//   data = data.concat(readData);
+// }
+
+// //create new string
+// var string = new Buffer(data).toString();
+// string = string.replace(/NOMECLIENTE/g, 'Bruno');
+
+// //Create and write our new text object
+// var objectsContext = modPdfWriter.getObjectsContext();
+// objectsContext.startModifiedIndirectObject(textObjectID);
+
+// var stream = objectsContext.startUnfilteredPDFStream();
+// stream.getWriteStream().write(strToByteArray(string));
+// objectsContext.endPDFStream(stream);
+
+// objectsContext.endIndirectObject();
+
+// modPdfWriter.end();
+
+// //removes old objects no longer in use
+// hummus.recrypt('./output.pdf', './outputClean.pdf');
+
+// function strToByteArray(str) {
+//   var myBuffer = [];
+//   var buffer = new Buffer(str);
+//   for (var i = 0; i < buffer.length; i++) {
+//       myBuffer.push(buffer[i]);
+//   }
+//   return myBuffer;
+// }
